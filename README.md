@@ -38,33 +38,12 @@ to look into at some point.
 
 ## Data shape
 
-I found that storing a record's date as a string did not allow either Google
-TaPas or Microsoft TaPex to correctly recognise the date. A workaround which
-appears effective is to store the year, month, and day as separate fields;
-however, this causes the inference model to confuse the `day` column and the
-`how_many` column in the table below due to the similarity of the data. The
-following table does not result in accurate results:
+The TaPas model is powerful when it comes to reading data from tables, but it's
+not great when the table in question represents a series of events rather than
+a collection of "static" data. Since the data as recorded by a user is a series
+of events, we need some extra steps in order to transform (hehe) the records of
+events into a table with data for the period in question.
 
-```csv
-year,month,day,activity,how_many
-2024, March, 29, gather eggs, 2
-2024, March, 30, gather eggs, 3
-2024, April, 2, gather eggs, 4
-2024, April, 4, gather eggs, 5
-2024, April, 5, gather eggs, 6
-2024, April, 6, gather eggs, 7
-```
-
-Instead, a table like the below -- which can be constructed after a calendar
-month ends -- results in accurate responses.
-
-```csv
-year,month,how_many
-2024, February, 120
-2024, March, 190
-2024, April, 202
-```
-
-The downside of this is that I will need more tables than I initially thought,
-and I will need to use a table selector working locally on the various database
-files I'll be utilising, along with the original TaPas API calls.
+This is a task for NLP! But since it looks like fairly *straightforward* NLP,
+I'm going to try implementing it myself instead of using yet another (slow)
+deployed model for this.
