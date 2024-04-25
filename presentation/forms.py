@@ -1,11 +1,36 @@
-from wtforms import DateField, Form, SelectField
+import datetime
+from flask_wtf import FlaskForm
+from wtforms import DateField, SelectField
+from wtforms_components import DateRange
 
-class SowForm(Form):
-    date = DateField()
-    crop = SelectField("Crop", choices=[("Cress", "crop-cress"), ])
-    location = SelectField("Location", choices=[
-        ("Kitchen", "kitchen")
-    ])
-    location_type = SelectField("Location type", choices=[
-        ("Indoors window box", "indoors-window-box")
-    ])
+class SowForm(FlaskForm):
+    date = DateField(
+        validators=[DateRange(
+            max=datetime.date.today()
+        )]
+    )
+    crop = SelectField(
+        "Crop",
+        choices=(
+            ("cress", "Cress"),
+            ("carrots", "Carrots"),
+            ("pumpkins", "Pumpkins"),
+        )
+    )
+    location = SelectField(
+        "Location",
+        choices=(
+            ("kitchen", "Kitchen"),
+            ("hoop-house-east", "Hoop house East"),
+            ("hoop-house-west", "Hoop house West"),
+            ("herb-garden", "Herb garden"),
+        )
+    )
+    location_type = SelectField(
+        "Location type",
+        choices=(
+            ("indoors-window-box", "Indoors window box"),
+            ("outdoors-raised-bed", "Outdoors raised bed"),
+            ("hoop-house-raised-bed", "Hoop house raised bed"),
+        )
+    )
