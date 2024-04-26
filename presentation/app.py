@@ -1,5 +1,10 @@
-from flask import Flask, redirect, render_template, request
+import application
+from application import events
+
+from flask import Flask, redirect, render_template
 from . import forms
+
+application.initial_setup()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "hush"
@@ -13,5 +18,8 @@ def index():
 def record_sow():
     form = forms.SowForm()
     if form.validate_on_submit():
-        return redirect("/")
+        form_dict = dict((field.name, str(field.data)) for field in form)
+        errors = events.event_recorder(form_dict)
+        if not errors:
+            return redirect("/")
     return render_template("sow.html", form=form)
