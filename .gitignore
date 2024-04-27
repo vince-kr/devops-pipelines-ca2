@@ -2,3 +2,5 @@ venv*
 .idea
 
 events.csv
+
+__pycache__

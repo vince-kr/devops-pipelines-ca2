@@ -10,9 +10,12 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "hush"
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return "<h1>Speak to data</h1>"
+    form = forms.QueryForm()
+    if form.validate_on_submit():
+        pass
+    return render_template("index.html", form=form)
 
 @app.route("/sow", methods=["GET", "POST"])
 def record_sow():

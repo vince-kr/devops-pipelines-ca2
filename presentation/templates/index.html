@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+
+<title>Home</title>
+
+<h1>Speak to data</h1>
+
+<div id="conversation"></div>
+
+{% from "_formhelpers.html" import render_field %}
+<form method="post">
+    {{form.csrf_token}}
+    <dl>
+        {{ render_field(form.user_query) }}
+    </dl>
+    <input type="submit">
+</form>

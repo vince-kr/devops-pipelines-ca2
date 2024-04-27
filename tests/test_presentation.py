@@ -1,5 +1,6 @@
 import unittest
 from presentation import app, forms
+from flask_wtf import FlaskForm
 
 
 class TestFlaskApplication(unittest.TestCase):
@@ -11,12 +12,26 @@ class TestFlaskApplication(unittest.TestCase):
 
 
 class TestFlaskForms(unittest.TestCase):
+    @staticmethod
+    def _get_form_fields(form: FlaskForm) -> tuple[tuple[str, str], ...]:
+        return tuple((field.name, field.type) for field in form)
+
     def setUp(self):
-        self.context = app.app.test_request_context()
+        context = app.app.test_request_context()
+        with context:
+            self.query_form_fields = self._get_form_fields(forms.QueryForm())
+            self.sow_form = forms.SowForm()
+            self.sow_form_fields = self._get_form_fields(self.sow_form)
+
+    def test_query_form(self):
+        expected = (
+            ("user_query", "StringField"),
+            ("csrf_token", "CSRFTokenField"),
+        )
+        actual = self.query_form_fields
+        self.assertEqual(expected, actual)
 
     def test_sow_form(self):
-        with self.context:
-            sow_form = forms.SowForm()
         expected = (
             ("date", "DateField"),
             ("crop", "SelectField"),
@@ -24,12 +39,10 @@ class TestFlaskForms(unittest.TestCase):
             ("location_type", "SelectField"),
             ("csrf_token", "CSRFTokenField"),
         )
-        actual = tuple((field.name, field.type) for field in sow_form)
+        actual = self.sow_form_fields
         self.assertEqual(expected, actual)
 
     def test_givenFormInstance_whenAskedOwnType_thenReturnsTypeAsString(self):
-        with self.context:
-            sow_form = forms.SowForm()
         expected = "sow"
-        actual = sow_form.get_type_of_action()
+        actual = self.sow_form.get_type_of_action()
         self.assertEqual(expected, actual)
