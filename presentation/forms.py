@@ -3,6 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import DateField, SelectField, StringField
 from wtforms_components import DateRange
 
+
 class QueryForm(FlaskForm):
     user_query = StringField("User query")
 

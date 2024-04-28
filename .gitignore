@@ -4,3 +4,4 @@ venv*
 events.csv
 
 __pycache__
+*egg-info

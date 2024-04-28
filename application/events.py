@@ -1,4 +1,4 @@
-from . import config
+import config
 from communication import persistence
 
 def event_recorder(event_data: dict[str, str], testing=False):

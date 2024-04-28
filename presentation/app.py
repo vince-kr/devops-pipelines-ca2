@@ -2,7 +2,7 @@ import application
 from application import events
 
 from flask import Flask, redirect, render_template
-from . import forms
+import forms
 
 application.initial_setup()
 
