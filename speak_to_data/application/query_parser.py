@@ -1,4 +1,4 @@
-import config
+from speak_to_data.application import config
 from spacy.tokens.doc import Doc
 
 

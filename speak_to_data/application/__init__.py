@@ -1,6 +1,11 @@
 import csv
 import os
-from . import config
+from speak_to_data.application import config, events, query_parser
+
+config = config
+event_recorder = events.event_recorder
+retrieve_crop = query_parser.retrieve_crop
+
 
 def initial_setup():
     erp = config.EVENT_RECORDS_PATH

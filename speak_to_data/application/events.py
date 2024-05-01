@@ -1,10 +1,11 @@
-from . import config
-from communication import persistence
+from speak_to_data import application
+from speak_to_data import communication
 
 def event_recorder(event_data: dict[str, str], testing=False):
     if not testing:
         try:
-            persistence.persist_event(event_data, config.EVENT_RECORDS_PATH)
+            communication.persist_event(event_data,
+                                        application.config.EVENT_RECORDS_PATH)
             return ""
         except FileNotFoundError as fe:
             return str(fe)

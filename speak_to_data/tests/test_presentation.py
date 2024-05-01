@@ -1,11 +1,11 @@
 import unittest
-from presentation import app, forms
+from speak_to_data import presentation
 from flask_wtf import FlaskForm
 
 
 class TestFlaskApplication(unittest.TestCase):
     def setUp(self):
-        self.client = app.app.test_client()
+        self.client = presentation.flask_app.test_client()
 
     def test_route_to_record_sow_activity_exists(self):
         self.assertTrue(self.client.get("/sow"))
@@ -17,10 +17,10 @@ class TestFlaskForms(unittest.TestCase):
         return tuple((field.name, field.type) for field in form)
 
     def setUp(self):
-        context = app.app.test_request_context()
+        context = presentation.flask_app.test_request_context()
         with context:
-            self.query_form_fields = self._get_form_fields(forms.QueryForm())
-            self.sow_form = forms.SowForm()
+            self.query_form_fields = self._get_form_fields(presentation.QueryForm())
+            self.sow_form = presentation.SowForm()
             self.sow_form_fields = self._get_form_fields(self.sow_form)
 
     def test_query_form(self):

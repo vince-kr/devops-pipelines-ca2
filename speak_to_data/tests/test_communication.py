@@ -1,7 +1,6 @@
 import unittest
 
-from communication import persistence
-from presentation import forms
+from speak_to_data import communication
 
 class TestPersistence(unittest.TestCase):
     def setUp(self):
@@ -10,9 +9,9 @@ class TestPersistence(unittest.TestCase):
     def test_givenInvalidPath_thenRaiseError(self):
         invalid_path = "not a path"
         with self.assertRaises(FileNotFoundError):
-            persistence.persist_event({"mock": "dict"}, invalid_path)
+            communication.persist_event({"mock": "dict"}, invalid_path)
 
     def test_givenValidPathButNoAuthorisation_thenRaiseError(self):
         forbidden_path = "/usr/bin/cat"
         with self.assertRaises(PermissionError):
-            persistence.persist_event({"mock": "dict"}, forbidden_path)
+            communication.persist_event({"mock": "dict"}, forbidden_path)
