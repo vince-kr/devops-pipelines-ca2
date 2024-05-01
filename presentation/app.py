@@ -1,8 +1,8 @@
 import application
 from application import events
+from . import forms
 
 from flask import Flask, redirect, render_template
-import forms
 
 application.initial_setup()
 
