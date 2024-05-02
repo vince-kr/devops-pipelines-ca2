@@ -1,7 +1,9 @@
 import csv
 import os
+from pathlib import Path
 
-def persist_event(event_data: dict[str, str], persistence_path: str) -> None:
+
+def persist_event(event_data: dict[str, str], persistence_path: Path) -> None:
     if not os.path.isfile(persistence_path):
         raise FileNotFoundError(
             f"Trying to store the record at {persistence_path}"
