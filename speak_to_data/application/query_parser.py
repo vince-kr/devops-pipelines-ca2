@@ -6,20 +6,24 @@ from typing import Optional
 
 
 def _retrieve_from_query(query: Doc, retrieve_from: set[str]) -> Optional[set[str]]:
+    """Generate the set of lemmas for a given query and return matching action/crop"""
     query_lemmas = set(token.lemma_ for token in query)
     intersection = retrieve_from & query_lemmas
     return intersection if len(intersection) > 0 else None
 
 
 def retrieve_crop(query: Doc) -> Optional[set[str]]:
+    """Retrieve all crops from a given query"""
     return _retrieve_from_query(query, config.CROPS)
 
 
 def retrieve_action(query: Doc) -> Optional[set[str]]:
+    """Retrieve all actions from a given query"""
     return _retrieve_from_query(query, config.ACTIONS)
 
 
 class QueryDate:
+    """Get mentions of dates out of a Doc object for use in filters"""
     def __init__(self, query: Doc) -> None:
         self.todays_date: datetime.date = datetime.date.today()
         self.date_entities = [ent.text for ent in query.ents if ent.label_ == "DATE"]
@@ -30,10 +34,17 @@ class QueryDate:
         self.date_objects = [date_object for dto in datetime_objects
                              if (date_object := dto.date()) < self.todays_date]
 
-    def __bool__(self):
-        """Valid query dates: one or two parse-able dates in a query"""
-        return (1 <= len(self.date_entities) < 3 and
-                1 <= len(self.date_objects) < 3)
+    def __bool__(self) -> bool:
+        """One or two date entities in a query, all of which can be parsed"""
+        one_or_two_date_entities: bool = (
+                1 <= (count_date_entities := len(self.date_entities)) < 3
+        )
+        same_number_date_objects: bool = len(self.date_objects) == count_date_entities
+        return one_or_two_date_entities and same_number_date_objects
+
+    @property
+    def _no_dates(self) -> bool:
+        return len(self.date_objects) == 0
 
     @property
     def _one_date(self) -> bool:
@@ -51,7 +62,7 @@ class QueryDate:
 
         if self._one_date:
             return self._infer_date_range(*self.date_objects)
-        elif self._two_dates:
+        else:
             return self._compute_date_range(*self.date_objects)
 
     def _infer_date_range(
@@ -91,4 +102,15 @@ class QueryDate:
     def _compute_date_range(
             start: datetime.date, end: datetime.date
     ) -> tuple[datetime.date, datetime.date]:
-        pass
+        return start, end
+
+    @property
+    def warning(self) -> str:
+        message = ""
+        if not self.date_entities:
+            message = ("This query does not contain any dates. "
+                       "Please specify a date or date range.")
+        elif not self.date_objects:
+            message = (f"Date reference \"{self.date_entities[0]}\" cannot be parsed "
+                       f"as a date, or represents a future date.")
+        return message
