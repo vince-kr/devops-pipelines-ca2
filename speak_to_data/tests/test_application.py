@@ -127,3 +127,11 @@ class TestQueryParserDateRange(unittest.TestCase):
                     "or represents a future date.")
         actual = query_date.warning
         self.assertEqual(expected, actual)
+
+
+class TestCrux(unittest.TestCase):
+    def test_givenHowMuchCrop_thenCruxIsSumOfQuantityFields(self):
+        query = nlp("How much cress did I sow last year?")
+        expected = "what is sum of quantity"
+        actual = application.get_crux(query)
+        self.assertEqual(expected, actual)

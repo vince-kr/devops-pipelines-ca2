@@ -114,3 +114,10 @@ class QueryDate:
             message = (f"Date reference \"{self.date_entities[0]}\" cannot be parsed "
                        f"as a date, or represents a future date.")
         return message
+
+
+def get_crux(query: Doc) -> str:
+    quantity_indicators = ("how much", "how many")
+    if (query[:2].text.lower() in quantity_indicators and
+        query[2].lemma_ in config.CROPS):
+        return "what is sum of quantity"

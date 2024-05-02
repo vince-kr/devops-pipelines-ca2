@@ -5,8 +5,8 @@ from speak_to_data.application import config, events, query_parser
 config = config
 event_recorder = events.event_recorder
 retrieve_crop = query_parser.retrieve_crop
-# retrieve_date_range = query_parser.retrieve_date_range
 QueryDate = query_parser.QueryDate
+get_crux = query_parser.get_crux
 
 
 def initial_setup():
