@@ -1,7 +1,8 @@
 import unittest
 
 import datetime
-from speak_to_data import application
+from speak_to_data.application import config, events, prepare_for_model, query_parser
+from speak_to_data.communication import read_full_dataset
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
@@ -10,11 +11,14 @@ nlp = spacy.load("en_core_web_sm")
 class TestEventRecorder(unittest.TestCase):
     def test_givenValidDict_eventRecorderReturnsEmptyString(self):
         expected = ""
-        actual = application.event_recorder({
-            "crop": "cress",
-            "location": "kitchen",
-            "location_type": "indoors-window-box"
-        })
+        actual = events.event_recorder(
+            {
+                "crop": "cress",
+                "location": "kitchen",
+                "location_type": "indoors-window-box"
+                },
+            testing=True
+        )
         self.assertEqual(expected, actual)
 
 
@@ -25,19 +29,20 @@ class TestQueryParserCropsAndActions(unittest.TestCase):
     def test_givenSetOfValidCrops_whenQueryContainsOneCrop_returnCrop(self):
         one_crop = nlp("How much cress did I sow last year?")
         expected = {"cress"}
-        actual = application.retrieve_crop(one_crop)
+        actual = query_parser.retrieve_crop(one_crop)
         self.assertEqual(expected, actual)
 
     def test_givenSetOfValidCrops_whenQueryContainsTwoCrops_returnBoth(self):
         two_crops = nlp("How many beds have potatoes or broadbeans?")
         expected = {"potato", "broadbean"}
-        actual = application.retrieve_crop(two_crops)
+        actual = query_parser.retrieve_crop(two_crops)
         self.assertEqual(expected, actual)
 
-    def test_givenSetOfValidCrops_whenQueryContainsNoCrops_returnNone(self):
+    def test_givenSetOfValidCrops_whenQueryContainsNoCrops_returnEmptySet(self):
         no_crops = nlp("How much time did I spend on maintenance last month?")
-        actual = application.retrieve_crop(no_crops)
-        self.assertIsNone(actual)
+        actual = query_parser.retrieve_crop(no_crops)
+        self.assertTrue(len(actual) == 0)
+
 
 class TestQueryParserDateRange(unittest.TestCase):
     """Extract date objects from user query"""
@@ -48,7 +53,7 @@ class TestQueryParserDateRange(unittest.TestCase):
     # QueryDate.date_range exposes a valid tuple of start date, end date
     def test_givenQueryWithValidDate_thenQueryDateObjectIsTrue(self):
         valid_date_indication = nlp("How much cress did I sow last year?")
-        query_date = application.QueryDate(valid_date_indication)
+        query_date = query_parser.QueryDatesWarnings(valid_date_indication)
         self.assertTrue(query_date)
 
     def test_givenLastYear_thenReturnDateRangeOneOneToTwelveThirtyOne(self):
@@ -58,7 +63,7 @@ class TestQueryParserDateRange(unittest.TestCase):
             datetime.date(year, 1, 1),
             datetime.date(year, 12, 31),
         )
-        query_date = application.QueryDate(last_year)
+        query_date = query_parser.QueryDatesWarnings(last_year)
         actual = query_date.date_range
         self.assertEqual(expected, actual)
 
@@ -73,7 +78,7 @@ class TestQueryParserDateRange(unittest.TestCase):
             datetime.date(year, last_month, 1),
             datetime.date(year, last_month, last_day),
         )
-        query_date = application.QueryDate(date_last_month)
+        query_date = query_parser.QueryDatesWarnings(date_last_month)
         actual = query_date.date_range
         self.assertEqual(expected, actual)
 
@@ -83,7 +88,7 @@ class TestQueryParserDateRange(unittest.TestCase):
             datetime.date(2024, 2, 1),
             datetime.date(2024, 2, 29),
         )
-        query_date = application.QueryDate(february)
+        query_date = query_parser.QueryDatesWarnings(february)
         actual = query_date.date_range
         self.assertEqual(expected, actual)
 
@@ -95,15 +100,15 @@ class TestQueryParserDateRange(unittest.TestCase):
             datetime.date.fromisocalendar(year, week, 1),
             datetime.date.fromisocalendar(year, week, 7),
         )
-        query_date = application.QueryDate(last_week)
+        query_date = query_parser.QueryDatesWarnings(last_week)
         actual = query_date.date_range
         self.assertEqual(expected, actual)
 
     # Not valid cases: no date entities, or existing entities cannot be parsed
-    # QueryDate.warning exposes the issue found
+    # QueryDate.warning exposes a description of the issue
     def test_givenQueryWithoutDates_thenQueryDateObjectIsFalse(self):
         no_dates = nlp("How many beds have potatoes or broadbeans?")
-        query_date = application.QueryDate(no_dates)
+        query_date = query_parser.QueryDatesWarnings(no_dates)
         self.assertFalse(query_date)
         expected = ("This query does not contain any dates. "
                     "Please specify a date or date range.")
@@ -112,7 +117,7 @@ class TestQueryParserDateRange(unittest.TestCase):
 
     def test_givenQueryWithFutureDate_thenQueryDateObjectIsFalse(self):
         future_date = nlp("How many eggs are gathered next Thursday?")
-        query_date = application.QueryDate(future_date)
+        query_date = query_parser.QueryDatesWarnings(future_date)
         self.assertFalse(query_date)
         expected = ("Date reference \"next Thursday\" cannot be parsed as a date, "
                     "or represents a future date.")
@@ -121,7 +126,7 @@ class TestQueryParserDateRange(unittest.TestCase):
 
     def test_givenQueryWithTrickyDate_thenQueryDateObjectIsFalse(self):
         tricky_date = nlp("How many eggs were gathered on May Day?")
-        query_date = application.QueryDate(tricky_date)
+        query_date = query_parser.QueryDatesWarnings(tricky_date)
         self.assertFalse(query_date)
         expected = ("Date reference \"May Day\" cannot be parsed as a date, "
                     "or represents a future date.")
@@ -132,6 +137,61 @@ class TestQueryParserDateRange(unittest.TestCase):
 class TestCrux(unittest.TestCase):
     def test_givenHowMuchCrop_thenCruxIsSumOfQuantityFields(self):
         query = nlp("How much cress did I sow last year?")
-        expected = "what is sum of quantity"
-        actual = application.get_crux(query)
+        expected = "what is sum of quantity?"
+        actual = query_parser.get_crux(query)
         self.assertEqual(expected, actual)
+
+
+class TestDatasetFilter(unittest.TestCase):
+    def setUp(self):
+        self.query_data = query_parser.parse_query(
+            "How much cress did I sow last year?")
+        self.dataset = read_full_dataset(config.MOCK_DATA_SMALL)
+
+    def test_givenQueryDataWithCrop_thenSelectColumnsContainsCrop(self):
+        self.assertTrue("crop" in self.query_data.columns)
+
+    def test_givenQueryDataWithAction_thenSelectColumnsContainsAction(self):
+        self.assertTrue("action" in self.query_data.columns)
+
+    def test_givenCruxContainsQuantity_thenSelectColumnsContainsQuantity(self):
+        self.assertTrue("quantity" in self.query_data.columns)
+
+    def test_givenListOfOneDict_thenTransformToDictWithKeysValues(self):
+        mock_input = [
+            { "action": "sow", "crop": "cress", "quantity": "1sqft"},
+        ]
+        expected = {
+            "action": ["sow", ],
+            "crop": ["cress", ],
+            "quantity": ["1sqft", ],
+        }
+        actual = prepare_for_model._list_of_dicts_to_one_dict(mock_input)
+        self.assertEqual(expected, actual)
+
+    def test_givenListOfTwoDicts_thenTransformToDictWithKeysValues(self):
+        mock_input = [
+            { "action": "sow", "crop": "cress", "quantity": "1sqft"},
+            { "action": "sow", "crop": "cress", "quantity": "2sqft"},
+        ]
+        expected = {
+            "action": ["sow", "sow", ],
+            "crop": ["cress", "cress", ],
+            "quantity": ["1sqft", "2sqft", ],
+        }
+        actual = prepare_for_model._list_of_dicts_to_one_dict(mock_input)
+        self.assertEqual(expected, actual)
+
+
+'''
+    def test_givenQueryWithCropActionDates_thenReturnDataset(self):
+        expected = {
+            "action": ["sow", ],
+            "crop": ["cress", ],
+            "quantity": ["1sqft", ],
+        }
+        actual = prepare_for_model.generate_model_ready_dataset(
+            self.dataset, self.query_data
+        )
+        self.assertEqual(expected, actual)
+'''

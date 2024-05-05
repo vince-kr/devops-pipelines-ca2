@@ -1,28 +1,35 @@
+import dataclasses
 import dateparser
 import datetime
-from speak_to_data.application import config
 from spacy.tokens.doc import Doc
+from speak_to_data import application
 from typing import Optional
 
 
-def _retrieve_from_query(query: Doc, retrieve_from: set[str]) -> Optional[set[str]]:
+select_columns = set()
+
+def _retrieve_from_query(query: Doc, retrieve_from: set[str]) -> set[str]:
     """Generate the set of lemmas for a given query and return matching action/crop"""
     query_lemmas = set(token.lemma_ for token in query)
     intersection = retrieve_from & query_lemmas
-    return intersection if len(intersection) > 0 else None
+    return intersection
 
 
-def retrieve_crop(query: Doc) -> Optional[set[str]]:
+def retrieve_crop(query: Doc) -> set[str]:
     """Retrieve all crops from a given query"""
-    return _retrieve_from_query(query, config.CROPS)
+    if crops := _retrieve_from_query(query, application.config.CROPS):
+        select_columns.add("crop")
+    return crops
 
 
-def retrieve_action(query: Doc) -> Optional[set[str]]:
+def retrieve_action(query: Doc) -> set[str]:
     """Retrieve all actions from a given query"""
-    return _retrieve_from_query(query, config.ACTIONS)
+    if actions := _retrieve_from_query(query, application.config.ACTIONS):
+        select_columns.add("action")
+    return actions
 
 
-class QueryDate:
+class QueryDatesWarnings:
     """Get mentions of dates out of a Doc object for use in filters"""
     def __init__(self, query: Doc) -> None:
         self.todays_date: datetime.date = datetime.date.today()
@@ -117,7 +124,35 @@ class QueryDate:
 
 
 def get_crux(query: Doc) -> str:
-    quantity_indicators = ("how much", "how many")
+    quantity_indicators: tuple[str, ...] = ("how much", "how many")
+    crux: str = ""
     if (query[:2].text.lower() in quantity_indicators and
-        query[2].lemma_ in config.CROPS):
-        return "what is sum of quantity"
+        query[2].lemma_ in application.config.CROPS):
+        select_columns.add("quantity")
+        crux = "what is sum of quantity?"
+    return crux
+
+
+@dataclasses.dataclass
+class QueryData:
+    docd_query: Doc
+    action: set[str]
+    crop: set[str]
+    query_dates: QueryDatesWarnings
+    crux: str
+    columns: set[str]
+
+    def __bool__(self) -> bool:
+        return bool(self.crux and self.query_dates)
+
+
+def parse_query(raw_user_query: str) -> QueryData:
+    docd_query: Doc = application.nlp(raw_user_query)
+    return QueryData(
+        docd_query=docd_query,
+        action=retrieve_action(docd_query),
+        crop=retrieve_crop(docd_query),
+        query_dates=QueryDatesWarnings(docd_query),
+        crux=get_crux(docd_query),
+        columns=select_columns
+    )

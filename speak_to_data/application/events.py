@@ -1,5 +1,4 @@
-from speak_to_data import application
-from speak_to_data import communication
+from speak_to_data import application, communication
 
 def event_recorder(event_data: dict[str, str], testing=False):
     if not testing:

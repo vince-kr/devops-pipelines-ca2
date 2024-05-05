@@ -1,13 +1,15 @@
 import csv
+import json
 import os
-from speak_to_data.application import config, events, query_parser
+import spacy
+from speak_to_data.application import (
+    config, events, prepare_for_model, query_parser
+)
+from speak_to_data import communication
+from speak_to_data.application.query_parser import QueryData
 
-config = config
+nlp = spacy.load("en_core_web_sm")
 event_recorder = events.event_recorder
-retrieve_crop = query_parser.retrieve_crop
-QueryDate = query_parser.QueryDate
-get_crux = query_parser.get_crux
-
 
 def initial_setup():
     erp = config.EVENT_RECORDS_PATH
@@ -24,3 +26,18 @@ def initial_setup():
                 w.writeheader()
         except OSError:
             pass
+
+parse_query = query_parser.parse_query
+
+def generate_request_object(query_data: QueryData) -> str:
+    altered_query = query_data.crux
+    dataset = communication.read_full_dataset(config.EVENT_RECORDS_PATH)
+    altered_dataset = query_data
+
+    return json.dumps({
+        "query": altered_query,
+        "table": altered_dataset,
+        "options": {
+            "wait_for_model": "true",
+        },
+    })
