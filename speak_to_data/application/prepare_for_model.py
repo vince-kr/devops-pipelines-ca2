@@ -2,9 +2,12 @@ from speak_to_data.application.query_parser import QueryData
 
 
 def generate_model_ready_dataset(dataset: list[dict],
-                                 query_data: QueryData) -> list[dict[str, str]]:
-    crop = query_data.crop
-    action = query_data.action
+                                 query_data: QueryData) -> dict[str, list[str]]:
+    if not query_data or not query_data.columns:
+        return dict()
+
+    crop: set[str] = query_data.crop
+    action: set[str] = query_data.action
     start_date, end_date = query_data.query_dates.date_range
 
     filter_rows = [
@@ -15,20 +18,19 @@ def generate_model_ready_dataset(dataset: list[dict],
     ]
 
     if not filter_rows:
-        return filter_rows
+        return dict()
 
     filter_columns = [
         {key: row[key] for key in row.keys() if key in query_data.columns}
         for row in filter_rows
     ]
 
-    # Now the data needs to be transformed from a list of dicts representing rows
-    # to a single dict with column names as keys and column values as values
+    transform = _list_of_dicts_to_one_dict(filter_columns)
+    return transform
 
-    return filter_columns
 
-def _list_of_dicts_to_one_dict(dataset: list[dict]) -> dict:
-    """Transform list[dict[str, str]] into dict[str, list[str]]"""
+def _list_of_dicts_to_one_dict(dataset: list[dict[str, str]]) -> dict[str, list[str]]:
+    """Transform output of csv.DictWriter to correct format for TaPas"""
     if not dataset:
         return dict()
 

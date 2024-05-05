@@ -1,5 +1,4 @@
 import csv
-import json
 import os
 import spacy
 from speak_to_data.application import (
@@ -29,15 +28,23 @@ def initial_setup():
 
 parse_query = query_parser.parse_query
 
-def generate_request_object(query_data: QueryData) -> str:
+def generate_request_object(query_data: QueryData) -> dict:
     altered_query = query_data.crux
     dataset = communication.read_full_dataset(config.EVENT_RECORDS_PATH)
-    altered_dataset = query_data
+    altered_dataset = prepare_for_model.generate_model_ready_dataset(
+        dataset, query_data
+    )
+    print(altered_dataset)
 
-    return json.dumps({
-        "query": altered_query,
-        "table": altered_dataset,
+    return {
+        "inputs": {
+            "query": altered_query,
+            "table": altered_dataset,
+        },
         "options": {
             "wait_for_model": "true",
         },
-    })
+    }
+
+def call_tapas_on_hf(request_object: str) -> dict:
+    return communication.network.call_model_api(request_object)

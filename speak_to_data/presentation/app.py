@@ -12,14 +12,24 @@ app.config["SECRET_KEY"] = "hush"
 def index():
     form = presentation.QueryForm()
     if form.validate_on_submit():
-        valid_query_data = application.parse_query(form.user_query)
+        valid_query_data = application.parse_query(form.user_query.data)
         if valid_query_data:
             request_object = application.generate_request_object(valid_query_data)
-            # Now use communication layer to call TaPas
+            response = application.call_tapas_on_hf(request_object)
         else:
             # Let the user know to change their query
-            pass
-    return render_template("index.html", form=form)
+            response = valid_query_data.query_dates.warning
+    else:
+        response = ""
+    show_user = {
+        "query": form.user_query,
+        "response": response,
+    }
+    return render_template(
+        "index.html",
+        form=form,
+        show_user=show_user
+    )
 
 @app.route("/sow", methods=["GET", "POST"])
 def record_sow():

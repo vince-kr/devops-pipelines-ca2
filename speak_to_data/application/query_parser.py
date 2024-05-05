@@ -3,7 +3,6 @@ import dateparser
 import datetime
 from spacy.tokens.doc import Doc
 from speak_to_data import application
-from typing import Optional
 
 
 select_columns = set()
@@ -62,10 +61,10 @@ class QueryDatesWarnings:
         return len(self.date_objects) == 2
 
     @property
-    def date_range(self) -> Optional[tuple[datetime.date, datetime.date]]:
+    def date_range(self) -> tuple[datetime.date, datetime.date]:
         """Tuple of start date, end date for filtering events"""
         if not self:
-            return None
+            return datetime.date.today(), datetime.date.today()
 
         if self._one_date:
             return self._infer_date_range(*self.date_objects)

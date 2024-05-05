@@ -182,16 +182,3 @@ class TestDatasetFilter(unittest.TestCase):
         actual = prepare_for_model._list_of_dicts_to_one_dict(mock_input)
         self.assertEqual(expected, actual)
 
-
-'''
-    def test_givenQueryWithCropActionDates_thenReturnDataset(self):
-        expected = {
-            "action": ["sow", ],
-            "crop": ["cress", ],
-            "quantity": ["1sqft", ],
-        }
-        actual = prepare_for_model.generate_model_ready_dataset(
-            self.dataset, self.query_data
-        )
-        self.assertEqual(expected, actual)
-'''
