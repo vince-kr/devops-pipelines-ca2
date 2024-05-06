@@ -1,19 +1,18 @@
 from collections import namedtuple
 import requests
 
-Url = namedtuple("Url", ("base_url", "owner", "model"))
+class TapasInterface:
+    Url = namedtuple("Url", ("base_url", "owner", "model"))
+    tapas_large = Url("https://api-inference.huggingface.co/models",
+                      "google",
+                      "tapas-large-finetuned-wtq"
+                      )
 
-tapas_large = Url("https://api-inference.huggingface.co/models",
-                  "google",
-                  "tapas-large-finetuned-wtq"
-                  )
+    def __init__(self, api_token: str):
+        self.api_token = api_token
+        self.full_url = "/".join(TapasInterface.tapas_large)
 
-full_url = "/".join(tapas_large)
-
-API_TOKEN = "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"
-headers = {"Authorization": f"Bearer {API_TOKEN}"}
-
-
-def call_model_api(payload: str) -> dict:
-    response = requests.post(full_url, headers=headers, json=payload)
-    return response.json()
+    def call_model_api(self, payload: dict) -> dict:
+        headers = {"Authorization": f"Bearer {self.api_token}"}
+        response = requests.post(self.full_url, headers=headers, json=payload)
+        return response.json()

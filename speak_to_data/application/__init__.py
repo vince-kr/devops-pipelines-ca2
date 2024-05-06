@@ -4,8 +4,8 @@ import spacy
 from speak_to_data.application import (
     config, events, prepare_for_model, query_parser
 )
-from speak_to_data import communication
 from speak_to_data.application.query_parser import QueryData
+from speak_to_data import communication
 
 nlp = spacy.load("en_core_web_sm")
 event_recorder = events.event_recorder
@@ -46,5 +46,6 @@ def generate_request_object(query_data: QueryData) -> dict:
         },
     }
 
-def call_tapas_on_hf(request_object: str) -> dict:
-    return communication.network.call_model_api(request_object)
+def call_tapas_on_hf(request_object: dict) -> dict:
+    tapas_interface = communication.TapasInterface(config.secrets["huggingface_api_token"])
+    return tapas_interface.call_model_api(request_object)
