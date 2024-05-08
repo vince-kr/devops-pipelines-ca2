@@ -11,6 +11,9 @@ def _retrieve_from_query(query: Doc, retrieve_from: set[str]) -> set[str]:
     """Generate the set of lemmas for a given query and return matching action/crop"""
     query_lemmas = set(token.lemma_ for token in query)
     intersection = retrieve_from & query_lemmas
+    if "plant" in intersection:
+        intersection.remove("plant")
+        intersection.add("sow")
     return intersection
 
 

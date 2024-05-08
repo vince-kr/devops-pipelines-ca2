@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+
+<title>Harvest</title>
+
+<h1>Harvest</h1>
+
+{% from "_formhelpers.html" import render_field %}
+<form method="post">
+    {{ form.csrf_token }}
+    <dl>
+        {{ render_field(form.date) }}
+        {{ render_field(form.crop) }}
+        {{ render_field(form.weight) }}
+        {{ render_field(form.location) }}
+        {{ render_field(form.location_type) }}
+    </dl>
+    <p><input type="submit"></p>
+</form>

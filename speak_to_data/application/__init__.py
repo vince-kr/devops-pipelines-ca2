@@ -34,7 +34,6 @@ def generate_request_object(query_data: QueryData) -> dict:
     altered_dataset = prepare_for_model.generate_model_ready_dataset(
         dataset, query_data
     )
-    print(altered_dataset)
 
     return {
         "inputs": {

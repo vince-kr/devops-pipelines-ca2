@@ -22,7 +22,7 @@ def index():
     else:
         response = ""
     show_user = {
-        "query": form.user_query,
+        "previous_query": form.user_query.data,
         "response": response,
     }
     return render_template(
@@ -33,6 +33,13 @@ def index():
 
 @app.route("/sow", methods=["GET", "POST"])
 def record_sow():
+    return _sow_or_plant()
+
+@app.route("/plant", methods=["GET", "POST"])
+def record_plant():
+    return _sow_or_plant()
+
+def _sow_or_plant():
     form = presentation.SowForm()
     if form.validate_on_submit():
         form_dict = dict((field.name, str(field.data)) for field in form)
@@ -42,3 +49,13 @@ def record_sow():
         if not errors:
             return redirect("/")
     return render_template("sow.html", form=form)
+
+@app.route("/maintain", methods=["GET", "POST"])
+def record_maintain():
+    form = presentation.MaintainForm()
+    return render_template("maintain.html", form=form)
+
+@app.route("/harvest", methods=["GET", "POST"])
+def record_harvest():
+    form = presentation.HarvestForm()
+    return render_template("harvest.html", form=form)

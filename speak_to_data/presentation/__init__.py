@@ -4,3 +4,5 @@ flask_app = app.app
 
 QueryForm = forms.QueryForm
 SowForm = forms.SowForm
+MaintainForm = forms.MaintainForm
+HarvestForm = forms.HarvestForm
