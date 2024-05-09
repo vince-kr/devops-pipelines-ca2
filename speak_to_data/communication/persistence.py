@@ -37,9 +37,8 @@ def read_full_dataset(persistence_path: Path) -> list[dict]:
         raise PermissionError(f"Not allowed to read from file {pe.filename}")
     return full_dataset
 
-def read_json(secrets_path: Path) -> dict[str, str]:
-    if not secrets_path.is_file():
+def read_json(path: Path) -> dict[str, str]:
+    if not path.is_file():
         return dict()
-    with open(secrets_path) as sp:
-        secrets = json.load(sp)
-    return secrets
+    with open(path) as jp:
+        return json.load(jp)

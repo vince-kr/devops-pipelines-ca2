@@ -1,8 +1,9 @@
 from speak_to_data.application.query_parser import QueryData
 
 
-def generate_model_ready_dataset(dataset: list[dict],
-                                 query_data: QueryData) -> dict[str, list[str]]:
+def generate_model_ready_dataset(
+        dataset: list[dict],
+        query_data: QueryData) -> dict[str, list[str]]:
     if not query_data or not query_data.columns:
         return dict()
 

@@ -13,8 +13,8 @@ class TestFlaskApplication(unittest.TestCase):
 
 class TestFlaskForms(unittest.TestCase):
     @staticmethod
-    def _get_form_fields(form: FlaskForm) -> tuple[tuple[str, str], ...]:
-        return tuple((field.name, field.type) for field in form)
+    def _get_form_fields(form: FlaskForm) -> set[tuple[str, str]]:
+        return set((field.name, field.type) for field in form)
 
     def setUp(self):
         context = presentation.flask_app.test_request_context()
@@ -24,21 +24,21 @@ class TestFlaskForms(unittest.TestCase):
             self.sow_form_fields = self._get_form_fields(self.sow_form)
 
     def test_query_form(self):
-        expected = (
+        expected = {
             ("user_query", "StringField"),
             ("csrf_token", "CSRFTokenField"),
-        )
+        }
         actual = self.query_form_fields
         self.assertEqual(expected, actual)
 
     def test_sow_form(self):
-        expected = (
+        expected = {
             ("date", "DateField"),
             ("crop", "SelectField"),
             ("location", "SelectField"),
             ("location_type", "SelectField"),
-            ("csrf_token", "CSRFTokenField"),
-        )
+            ("csrf_token", "CSRFTokenField")
+        }
         actual = self.sow_form_fields
         self.assertEqual(expected, actual)
 

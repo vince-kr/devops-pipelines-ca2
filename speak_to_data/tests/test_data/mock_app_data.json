@@ -1,0 +1,18 @@
+{
+  "crops": [
+    "cress",
+    "potato",
+    "french-bean",
+    "carrot"
+  ],
+  "locations": [
+    "kitchen",
+    "living-room",
+    "east-hoop-house"
+  ],
+  "location-types": [
+    "indoor-window-box",
+    "hoop-house-raised-bed",
+    "outside-raised-bed"
+  ]
+}

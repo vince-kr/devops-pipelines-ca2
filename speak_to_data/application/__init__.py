@@ -1,18 +1,23 @@
 import csv
-import os
+from pathlib import Path
+
 import spacy
 from speak_to_data.application import (
-    config, events, prepare_for_model, query_parser
+    config, events, prepare_for_model, query_parser, app_data_loader
 )
 from speak_to_data.application.query_parser import QueryData
 from speak_to_data import communication
 
 nlp = spacy.load("en_core_web_sm")
 event_recorder = events.event_recorder
+parse_query = query_parser.parse_query
+QueryData = QueryData
+AppDataLoader = app_data_loader.AppDataLoader
+
 
 def initial_setup():
-    erp = config.EVENT_RECORDS_PATH
-    if not os.path.isfile(erp):
+    erp: Path = config.EVENT_RECORDS_PATH
+    if not erp.is_file():
         fieldnames = [
             "date",
             "crop",
@@ -25,8 +30,6 @@ def initial_setup():
                 w.writeheader()
         except OSError:
             pass
-
-parse_query = query_parser.parse_query
 
 def generate_request_object(query_data: QueryData) -> dict:
     altered_query = query_data.crux
@@ -46,5 +49,7 @@ def generate_request_object(query_data: QueryData) -> dict:
     }
 
 def call_tapas_on_hf(request_object: dict) -> dict:
-    tapas_interface = communication.TapasInterface(config.secrets["huggingface_api_token"])
+    tapas_interface = communication.TapasInterface(
+        config.secrets["huggingface_api_token"])
     return tapas_interface.call_model_api(request_object)
+

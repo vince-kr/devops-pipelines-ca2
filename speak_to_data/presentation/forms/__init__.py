@@ -1,7 +1,6 @@
-from speak_to_data.presentation.app import app
-from speak_to_data.presentation.forms import forms
+from speak_to_data.presentation.forms import action_form, forms
 
-flask_app = app
+ActionForm = action_form.ActionForm
 QueryForm = forms.QueryForm
 SowForm = forms.SowForm
 MaintainForm = forms.MaintainForm
