@@ -26,7 +26,6 @@ class TestFlaskForms(unittest.TestCase):
     def test_query_form(self):
         expected = {
             ("user_query", "StringField"),
-            ("csrf_token", "CSRFTokenField"),
         }
         actual = self.query_form_fields
         self.assertEqual(expected, actual)
@@ -37,7 +36,6 @@ class TestFlaskForms(unittest.TestCase):
             ("crop", "SelectField"),
             ("location", "SelectField"),
             ("location_type", "SelectField"),
-            ("csrf_token", "CSRFTokenField")
         }
         actual = self.sow_form_fields
         self.assertEqual(expected, actual)
