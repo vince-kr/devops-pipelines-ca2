@@ -1,9 +1,9 @@
 import datetime
 from dataclasses import dataclass
+from pathlib import Path
 import re
 from typing import Type, Union
-
-from speak_to_data import presentation
+from speak_to_data import application, presentation
 from speak_to_data.presentation.forms import ActionForm
 import unittest
 
@@ -46,6 +46,7 @@ class Test_REF1_DisplayFormFields(unittest.TestCase):
                 patterns=(
                     "input_with_date_attr",
                     "select_with_name_crop",
+                    "input_with_text_attr",
                     "select_with_name_location",
                     "select_with_name_location_type",
                 )
@@ -55,6 +56,7 @@ class Test_REF1_DisplayFormFields(unittest.TestCase):
                 patterns=(
                     "input_with_date_attr",
                     "select_with_name_crop",
+                    "input_with_text_attr",
                     "select_with_name_location",
                     "select_with_name_location_type",
                 )
@@ -100,7 +102,7 @@ class Test_REF2_ValidateInputs(unittest.TestCase):
     """
     Epic: Record Events (RE)
     Functional requirement: the system must validate -- both at the client side and the
-    server side -- that data entered by the user is valid.
+    server side -- that data entered by the user is valid. (RE-F2)
     """
 
     def setUp(self):
@@ -144,13 +146,10 @@ class Test_REF2_ValidateInputs(unittest.TestCase):
 
         for test in valid_input_tests:
             with self.subTest(msg=f"Testing valid inputs for route: {test.route}"):
-                with self.app.test_request_context(
-                    path=test.route,
-                    method="POST",
-                    data=test.form_data
-                ):
-                    form = test.form()
-                    inputs_are_valid = form.validate()
+                with self.app.test_request_context(path=test.route,
+                                                   method="POST",
+                                                   data=test.form_data):
+                    inputs_are_valid = test.form().validate()
                 self.assertTrue(inputs_are_valid)
 
 
@@ -162,6 +161,7 @@ class Test_REF2_ValidateInputs(unittest.TestCase):
                 form_data={
                     "date": datetime.date(2038, 1, 20),
                     "crop": "not a crop!",
+                    "quantity": "42gr",
                     "location": "not a location!",
                     "location_type": "not a location type!",
                 }
@@ -171,7 +171,7 @@ class Test_REF2_ValidateInputs(unittest.TestCase):
                 form=presentation.MaintainForm,
                 form_data={
                     "date": datetime.date(2038, 1, 20),
-                    "duration": "4",
+                    "duration": "not a duration!",
                     "location": "not a location!",
                     "location_type": "not a location type!",
                 }
@@ -182,7 +182,7 @@ class Test_REF2_ValidateInputs(unittest.TestCase):
                 form_data={
                     "date": datetime.date(2038, 1, 20),
                     "crop": "not a crop!",
-                    "weight": "40gr",
+                    "quantity": "42gr",
                     "location": "not a location!",
                     "location_type": "not a location type!",
                 }
@@ -198,17 +198,106 @@ class Test_REF2_ValidateInputs(unittest.TestCase):
                 ):
                     form = test.form()
                     inputs_are_invalid = not form.validate()
-                    warnings = form.errors
                 self.assertTrue(inputs_are_invalid)
 
 
 class Test_REF3_PersistEventRecords(unittest.TestCase):
     """
     Epic: Record Events (RE)
-    Functional requirement: the system must persist the data entered by the user such
-    that it may be recalled later, including between restarts of the application.
-    (RE-F3)
+    Functional requirement: for valid input, the system must persist the data entered
+    by the user such that it may be recalled later, including between restarts of the
+    application. (RE-F3)
     """
 
-    def test_givenValidEventRecord_thenWriteRecordToCsv(self):
-        pass
+    def setUp(self):
+        self.test_path = Path("~/.local/share/speak-to-data/test_events.csv").expanduser()
+        with open(self.test_path, "w") as tp:
+            tp.write(
+                '"date","action","crop","quantity","duration","location","location_type"\n'
+            )
+
+    def tearDown(self):
+        self.test_path.unlink()
+
+    def test_givenValidEventData_thenWriteRecordToCsv(self):
+        # Call a system function that takes event data plus a path
+        # Read the string value of the same path
+        # Verify it matches expected value
+        sow_data = {
+            "date": "2024-5-12",
+            "action": "sow",
+            "crop": "cress",
+            "quantity": "1sqft",
+            "location": "kitchen",
+            "location_type": "indoor-window-box"
+        }
+        application.event_recorder(sow_data, self.test_path)
+        expected = '"date","action","crop","quantity","duration","location","location_type"\n\
+"2024-5-12","sow","cress","1sqft","","kitchen","indoor-window-box"\n'
+        with open(self.test_path) as f:
+            actual = f.read()
+        self.assertEqual(expected, actual)
+
+
+class Test_REF4_InformUserDataNotSaved(unittest.TestCase):
+    """
+    Epic: Record Events (RE)
+    Functional requirement: for invalid input, the system must inform the user that
+    their input will not be saved. (RE-F4)
+    """
+
+    def setUp(self):
+        self.app = presentation.flask_app
+        self.app.config["WTF_CSRF_ENABLED"] = False
+
+    def test_givenDateInFuture_thenFormWarnsDateCannotBeFuture(self):
+        sow_form_data = {
+            "date": datetime.date(2038, 1, 20),
+            "crop": "cress",
+            "quantity": "42gr",
+            "location": "kitchen",
+            "location_type": "indoor-window-box",
+        }
+        with self.app.test_request_context(path="/sow",
+                                           method="POST",
+                                           data=sow_form_data):
+            form = presentation.SowForm()
+            form.validate()
+            expected = "Event date cannot be in the future.\nYour data was not saved!"
+            actual = form.errors["date"][0]
+            self.assertEqual(expected, actual)
+
+
+    def test_givenInvalidCropChoice_thenFormWarnsInvalidSelection(self):
+        sow_form_data = {
+            "date": datetime.date.today(),
+            "crop": "not a crop!",
+            "quantity": "42gr",
+            "location": "kitchen",
+            "location_type": "indoor-window-box",
+        }
+        with self.app.test_request_context(path="/sow",
+                                           method="POST",
+                                           data=sow_form_data):
+            form = presentation.SowForm()
+            form.validate()
+            expected = "Not a valid choice.\nYour data was not saved!"
+            actual = form.errors["crop"][0]
+            self.assertEqual(expected, actual)
+
+
+    def test_givenInvalidDuration_thenFormWarnsInvalidSelection(self):
+        maintain_form_data = {
+            "date": datetime.date.today(),
+            "duration": "not valid!",
+            "location": "kitchen",
+            "location_type": "indoor-window-box",
+        }
+        with self.app.test_request_context(path="/maintain",
+                                           method="POST",
+                                           data=maintain_form_data):
+            form = presentation.MaintainForm()
+            form.validate()
+            expected = "Not a valid choice.\nYour data was not saved!"
+            actual = form.errors["duration"][0]
+            self.assertEqual(expected, actual)

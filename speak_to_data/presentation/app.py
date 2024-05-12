@@ -14,7 +14,9 @@ def index():
     if form.validate_on_submit():
         valid_query_data = application.parse_query(form.user_query.data)
         if valid_query_data:
-            request_object = application.generate_request_object(valid_query_data)
+            request_object = application.generate_request_object(
+                valid_query_data,
+                application.config.EVENT_RECORDS_PATH)
             response = application.call_tapas_on_hf(request_object)
         else:
             # Let the user know to change their query

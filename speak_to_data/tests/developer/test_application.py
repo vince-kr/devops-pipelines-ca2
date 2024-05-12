@@ -1,14 +1,24 @@
 import unittest
 
 import datetime
+from pathlib import Path
+
 from speak_to_data.application import config, events, prepare_for_model, query_parser
-from speak_to_data.communication import read_full_dataset
+from speak_to_data.communication import read_dataset
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
 
 
 class TestEventRecorder(unittest.TestCase):
+    def setUp(self):
+        self.test_path = Path(
+            "~/.local/share/speak-to-data/test_events.csv").expanduser()
+        self.test_path.touch()
+
+    def tearDown(self):
+        self.test_path.unlink()
+
     def test_givenValidDict_eventRecorderReturnsEmptyString(self):
         expected = ""
         actual = events.event_recorder(
@@ -17,7 +27,7 @@ class TestEventRecorder(unittest.TestCase):
                 "location": "kitchen",
                 "location_type": "indoors-window-box"
                 },
-            testing=True
+            self.test_path
         )
         self.assertEqual(expected, actual)
 
@@ -85,8 +95,8 @@ class TestQueryParserDateRange(unittest.TestCase):
     def test_givenNamedMonth_thenReturnDateRangeYearMonthOnetoYearMonthEnd(self):
         february = nlp("Did I plant pumpkins in February?")
         expected = (
-            datetime.date(2024, 2, 1),
-            datetime.date(2024, 2, 29),
+            datetime.date(self.today.year, 2, 1),
+            datetime.date(self.today.year, 2, 29),
         )
         query_date = query_parser.QueryDatesWarnings(february)
         actual = query_date.date_range
@@ -146,7 +156,7 @@ class TestDatasetFilter(unittest.TestCase):
     def setUp(self):
         self.query_data = query_parser.parse_query(
             "How much cress did I sow last year?")
-        self.dataset = read_full_dataset(config.MOCK_DATA_SMALL)
+        self.dataset = read_dataset(config.MOCK_DATA_SMALL)
 
     def test_givenQueryDataWithCrop_thenSelectColumnsContainsCrop(self):
         self.assertTrue("crop" in self.query_data.columns)
@@ -169,7 +179,7 @@ class TestDatasetFilter(unittest.TestCase):
         actual = prepare_for_model._list_of_dicts_to_one_dict(mock_input)
         self.assertEqual(expected, actual)
 
-    def test_givenListOfTwoDicts_thenTransformToDictWithKeysValues(self):
+    def test_givenListOfTwoDicts_thenTransformToDictWithListValues(self):
         mock_input = [
             { "action": "sow", "crop": "cress", "quantity": "1sqft"},
             { "action": "sow", "crop": "cress", "quantity": "2sqft"},

@@ -1,7 +1,7 @@
 import json
 from speak_to_data import application
 from speak_to_data.application import config, prepare_for_model, query_parser
-from speak_to_data.communication import read_full_dataset
+from speak_to_data.communication import read_dataset
 import unittest
 
 class TestCsvReaderToTableGenerator(unittest.TestCase):
@@ -11,14 +11,15 @@ class TestCsvReaderToTableGenerator(unittest.TestCase):
         )
 
     def test_givenMockDataFromCsv_thenTransformToDictWithKeysValues(self):
-        data_from_csv = read_full_dataset(config.MOCK_DATA_SMALL)
+        data_from_csv = read_dataset(config.MOCK_DATA_SMALL)
         expected = {
             "action": ["sow", "sow"],
             "crop": ["cress", "cress"],
             "quantity": ["1sqft", "2sqft"],
         }
         actual = prepare_for_model.generate_model_ready_dataset(
-            data_from_csv, self.query_data
+            data_from_csv,
+            self.query_data
         )
         self.assertEqual(expected, actual)
 
@@ -36,5 +37,6 @@ class TestCsvReaderToTableGenerator(unittest.TestCase):
                 "wait_for_model": "true",
             }
         }
-        actual = application.generate_request_object(self.query_data)
+        actual = application.generate_request_object(self.query_data,
+                                                     application.config.MOCK_DATA_SMALL)
         self.assertEqual(expected, actual)

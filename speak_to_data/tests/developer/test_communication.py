@@ -42,12 +42,20 @@ class TestPersistenceErrors(unittest.TestCase):
     def test_givenInvalidPath_thenRaiseError(self):
         invalid_path = Path("not a path")
         with self.assertRaises(FileNotFoundError):
-            communication.persist_event({"mock": "dict"}, invalid_path)
+            communication.persist_event(
+                {"mock": "dict"},
+                invalid_path,
+                fieldnames=application.config.FIELD_NAMES
+            )
 
     def test_givenValidPathButNoAuthorisation_thenRaiseError(self):
         forbidden_path = Path("/usr/bin/cat")
         with self.assertRaises(PermissionError):
-            communication.persist_event({"mock": "dict"}, forbidden_path)
+            communication.persist_event(
+                {"mock": "dict"},
+                forbidden_path,
+                application.config.FIELD_NAMES
+            )
 
 
 class TestDatasetReader(unittest.TestCase):
@@ -56,5 +64,5 @@ class TestDatasetReader(unittest.TestCase):
         expected = mock_data
         for row in expected:
             row["date"] = datetime.date.fromisoformat(row["date"])
-        actual = communication.persistence.read_full_dataset(mock_data_path)
+        actual = communication.persistence.read_dataset(mock_data_path)
         self.assertEqual(expected, actual)

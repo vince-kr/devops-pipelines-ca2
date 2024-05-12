@@ -34,6 +34,7 @@ class TestFlaskForms(unittest.TestCase):
         expected = {
             ("date", "DateField"),
             ("crop", "SelectField"),
+            ("quantity", "StringField"),
             ("location", "SelectField"),
             ("location_type", "SelectField"),
         }

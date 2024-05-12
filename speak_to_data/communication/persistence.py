@@ -1,17 +1,17 @@
 import csv
 import datetime
 import json
-import os
 from pathlib import Path
 
 
-def persist_event(event_data: dict[str, str], persistence_path: Path) -> None:
-    if not os.path.isfile(persistence_path):
+def persist_event(event_data: dict[str, str],
+                  persistence_path: Path,
+                  fieldnames: list[str, ...]) -> None:
+    if not persistence_path.is_file():
         raise FileNotFoundError(
-            f"Trying to store the record at {persistence_path}"
+            f"Trying to store the record at {persistence_path} "
             f"but this is not a valid path."
         )
-    fieldnames = list(event_data.keys())
     try:
         with open(persistence_path, "a", newline="") as events_store:
             w = csv.DictWriter(events_store, fieldnames=fieldnames, dialect="unix")
@@ -19,10 +19,10 @@ def persist_event(event_data: dict[str, str], persistence_path: Path) -> None:
     except PermissionError as pe:
         raise PermissionError(f"Not allowed to write to file {pe.filename}")
 
-def read_full_dataset(persistence_path: Path) -> list[dict]:
-    if not os.path.isfile(persistence_path):
+def read_dataset(persistence_path: Path) -> list[dict]:
+    if not persistence_path.is_file():
         raise FileNotFoundError(
-            f"Trying to read from {persistence_path}"
+            f"Trying to read from {persistence_path} "
             f"but this is not a valid path."
         )
     full_dataset = []
@@ -34,7 +34,7 @@ def read_full_dataset(persistence_path: Path) -> list[dict]:
                 row["date"] = date_object
                 full_dataset.append(row)
     except PermissionError as pe:
-        raise PermissionError(f"Not allowed to read from file {pe.filename}")
+        raise PermissionError(f"Not allowed to read from file at:\n{pe.filename}")
     return full_dataset
 
 def read_json(path: Path) -> dict[str, str]:
