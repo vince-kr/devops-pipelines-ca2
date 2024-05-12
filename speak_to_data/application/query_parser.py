@@ -40,8 +40,8 @@ class QueryDatesWarnings:
         datetime_objects = (datetime_object for entity in self.date_entities
                             if (datetime_object := dateparser.parse(entity)))
         # List of date objects that are not in the future
-        self.date_objects = [date_object for dto in datetime_objects
-                             if (date_object := dto.date()) < self.todays_date]
+        self.date_objects = tuple(date_object for dto in datetime_objects
+                             if (date_object := dto.date()) < self.todays_date)
 
     def __bool__(self) -> bool:
         """One or two date entities in a query, all of which can be parsed"""
@@ -64,7 +64,7 @@ class QueryDatesWarnings:
         return len(self.date_objects) == 2
 
     @property
-    def date_range(self) -> tuple[datetime.date, datetime.date]:
+    def date_range(self) -> tuple[datetime.date, ...]:
         """Tuple of start date, end date for filtering events"""
         if not self:
             return datetime.date.today(), datetime.date.today()
@@ -72,12 +72,12 @@ class QueryDatesWarnings:
         if self._one_date:
             return self._infer_date_range(*self.date_objects)
         else:
-            return self._compute_date_range(*self.date_objects)
+            return self.date_objects
 
     def _infer_date_range(
             self,
             target_date: datetime.date
-    ) -> tuple[datetime.date, datetime.date]:
+    ) -> tuple[datetime.date, ...]:
         days_offset: int = (self.todays_date - target_date).days
         if days_offset > 360:
             # Date range should span all of last calendar year

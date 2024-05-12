@@ -18,12 +18,7 @@ AppDataLoader = app_data_loader.AppDataLoader
 def initial_setup():
     erp: Path = config.EVENT_RECORDS_PATH
     if not erp.is_file():
-        fieldnames = [
-            "date",
-            "crop",
-            "location",
-            "location_type",
-        ]
+        fieldnames = config.FIELD_NAMES
         try:
             with open(erp, "w", newline="") as event_record:
                 w = csv.DictWriter(event_record, fieldnames=fieldnames, dialect="unix")
@@ -31,9 +26,10 @@ def initial_setup():
         except OSError:
             pass
 
-def generate_request_object(query_data: QueryData) -> dict:
+def generate_request_object(query_data: QueryData,
+                            events_path: Path) -> dict:
     altered_query = query_data.crux
-    dataset = communication.read_full_dataset(config.EVENT_RECORDS_PATH)
+    dataset = communication.read_dataset(events_path)
     altered_dataset = prepare_for_model.generate_model_ready_dataset(
         dataset, query_data
     )
@@ -50,6 +46,6 @@ def generate_request_object(query_data: QueryData) -> dict:
 
 def call_tapas_on_hf(request_object: dict) -> dict:
     tapas_interface = communication.TapasInterface(
-        config.secrets["huggingface_api_token"])
+        config.SECRETS["huggingface_api_token"])
     return tapas_interface.call_model_api(request_object)
 
