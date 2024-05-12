@@ -1,7 +1,11 @@
 venv*
 .idea
 
-events.csv
-
 __pycache__
 *egg-info
+
+events.csv
+
+*-qa.py
+query-date-states
+secret.json

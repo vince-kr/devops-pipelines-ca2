@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<title>Maintainance</title>
+
+<h1>Maintainance</h1>
+
+{% from "_formhelpers.html" import render_field %}
+<form method="post">
+    {{ form.csrf_token }}
+    <dl>
+        {{ render_field(form.date) }}
+        {{ render_field(form.duration) }}
+        {{ render_field(form.location) }}
+        {{ render_field(form.location_type) }}
+    </dl>
+    <p><input type="submit"></p>
+</form>

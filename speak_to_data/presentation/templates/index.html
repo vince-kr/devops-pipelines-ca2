@@ -4,7 +4,10 @@
 
 <h1>Speak to data</h1>
 
-<div id="conversation"></div>
+<div id="query-and-response">
+    <p><b>Query: </b>{{show_user.previous_query}}</p>
+    <p><b>Response: </b>{{show_user.response}}</p>
+</div>
 
 {% from "_formhelpers.html" import render_field %}
 <form method="post">

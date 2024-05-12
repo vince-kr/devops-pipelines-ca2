@@ -1,0 +1,32 @@
+{
+  "actions": [
+    "sow",
+    "plant",
+    "maintain",
+    "harvest"
+  ],
+  "crops": [
+    "cress",
+    "carrot",
+    "potato",
+    "zucchini",
+    "broadbean"
+  ],
+  "locations": [
+    "kitchen",
+    "living-room",
+    "east-hoop-house",
+    "west-hoop-house",
+    "herb-garden",
+    "greenhouse",
+    "pig-patch",
+    "square-patch"
+  ],
+  "location-types": [
+    "indoor-window-box",
+    "hoop-house-raised-bed",
+    "outside-raised-bed",
+    "outside-pallet",
+    "greenhouse-module"
+  ]
+}
