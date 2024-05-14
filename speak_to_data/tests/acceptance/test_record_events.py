@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 from typing import Type, Union
-
 from speak_to_data import application, presentation
 from speak_to_data.presentation.forms import ActionForm
 import unittest
@@ -14,6 +13,7 @@ Unique per test:
 - Route to get the source for
 - Collection of patterns that should appear in the source
 """
+
 @dataclass
 class RouteFormFields:
     route: str
@@ -151,13 +151,10 @@ class Test_REF2_ValidateInputs(unittest.TestCase):
 
         for test in valid_input_tests:
             with self.subTest(msg=f"Testing valid inputs for route: {test.route}"):
-                with self.app.test_request_context(
-                    path=test.route,
-                    method="POST",
-                    data=test.form_data
-                ):
-                    form = test.form()
-                    inputs_are_valid = form.validate()
+                with self.app.test_request_context(path=test.route,
+                                                   method="POST",
+                                                   data=test.form_data):
+                    inputs_are_valid = test.form().validate()
                 self.assertTrue(inputs_are_valid)
 
 
