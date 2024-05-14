@@ -13,6 +13,7 @@ Unique per test:
 - Route to get the source for
 - Collection of patterns that should appear in the source
 """
+
 @dataclass
 class RouteFormFields:
     route: str
@@ -96,6 +97,10 @@ class FormInputValidation:
     route: str
     form: Type[ActionForm]
     form_data: dict[str, Union[datetime.date, str]]
+
+@dataclass
+class FormWarningTrigger:
+    pass
 
 
 class Test_REF2_ValidateInputs(unittest.TestCase):

@@ -1,6 +1,7 @@
 from pathlib import Path
 from speak_to_data import application, communication
 
+
 def event_recorder(
         event_data: dict[str, str],
         persistence_path: Path = application.config.EVENT_RECORDS_PATH):
