@@ -3,7 +3,11 @@ from pathlib import Path
 
 import spacy
 from speak_to_data.application import (
-    config, events, prepare_for_model, query_parser, app_data_loader
+    config,
+    events,
+    prepare_for_model,
+    query_parser,
+    app_data_loader,
 )
 from speak_to_data.application.query_parser import QueryData
 from speak_to_data import communication
@@ -15,7 +19,7 @@ QueryData = QueryData
 AppDataLoader = app_data_loader.AppDataLoader
 
 
-def initial_setup():
+def initial_setup() -> None:
     erp: Path = config.EVENT_RECORDS_PATH
     if not erp.is_file():
         fieldnames = config.FIELD_NAMES
@@ -26,8 +30,8 @@ def initial_setup():
         except OSError:
             pass
 
-def generate_request_object(query_data: QueryData,
-                            events_path: Path) -> dict:
+
+def generate_request_object(query_data: QueryData, events_path: Path) -> dict:
     altered_query = query_data.crux
     dataset = communication.read_dataset(events_path)
     altered_dataset = prepare_for_model.generate_model_ready_dataset(
@@ -44,8 +48,9 @@ def generate_request_object(query_data: QueryData,
         },
     }
 
+
 def call_tapas_on_hf(request_object: dict) -> dict:
     tapas_interface = communication.TapasInterface(
-        config.SECRETS["huggingface_api_token"])
+        config.SECRETS["huggingface_api_token"]
+    )
     return tapas_interface.call_model_api(request_object)
-
