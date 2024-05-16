@@ -17,11 +17,16 @@ class TestFlaskForms(unittest.TestCase):
         return set((field.name, field.type) for field in form)
 
     def setUp(self):
-        context = presentation.flask_app.test_request_context()
+        app = presentation.flask_app
+        app.config["WTF_CSRF_ENABLED"] = False
+        context = app.test_request_context()
         with context:
             self.query_form_fields = self._get_form_fields(presentation.QueryForm())
             self.sow_form = presentation.SowForm()
             self.sow_form_fields = self._get_form_fields(self.sow_form)
+            self.maintain_form_fields = self._get_form_fields(
+                presentation.MaintainForm()
+            )
 
     def test_query_form(self):
         expected = {
@@ -39,6 +44,16 @@ class TestFlaskForms(unittest.TestCase):
             ("location_type", "SelectField"),
         }
         actual = self.sow_form_fields
+        self.assertEqual(expected, actual)
+
+    def test_maintenance_form(self):
+        expected = {
+            ("date", "DateField"),
+            ("duration", "IntegerField"),
+            ("location", "SelectField"),
+            ("location_type", "SelectField"),
+        }
+        actual = self.maintain_form_fields
         self.assertEqual(expected, actual)
 
     def test_givenFormInstance_whenAskedOwnType_thenReturnsTypeAsString(self):

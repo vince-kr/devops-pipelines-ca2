@@ -40,6 +40,7 @@ class Test_REF1_DisplayFormFields(unittest.TestCase):
             "select_with_name_location_type": r"\<select[^\>]*name=\"location_type\"",
             "input_with_radio_attr": r"\<input[^\>]*type=\"radio\"",
             "input_with_text_attr": r"\<input[^\>]*type=\"text\"",
+            "input_with_number_attr": r"\<input[^\>]*type=\"number\"",
         }
 
         route_form_tests = (
@@ -67,7 +68,7 @@ class Test_REF1_DisplayFormFields(unittest.TestCase):
                 route="/maintain",
                 patterns=(
                     "input_with_date_attr",
-                    "input_with_radio_attr",
+                    "input_with_number_attr",
                     "select_with_name_location",
                     "select_with_name_location_type",
                 ),
@@ -303,6 +304,6 @@ class Test_REF4_InformUserDataNotSaved(unittest.TestCase):
         ):
             form = presentation.MaintainForm()
             form.validate()
-            expected = "Not a valid choice.\nYour data was not saved!"
+            expected = "Not a valid integer value."
             actual = form.errors["duration"][0]
             self.assertEqual(expected, actual)

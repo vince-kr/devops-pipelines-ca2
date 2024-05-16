@@ -7,6 +7,7 @@ from speak_to_data.application import (
     events,
     prepare_for_model,
     query_parser,
+response_parser,
     app_data_loader,
 )
 from speak_to_data.application.query_parser import QueryData
@@ -17,6 +18,7 @@ event_recorder = events.event_recorder
 parse_query = query_parser.parse_query
 QueryData = QueryData
 AppDataLoader = app_data_loader.AppDataLoader
+Response = response_parser.Response
 
 
 def initial_setup() -> None:

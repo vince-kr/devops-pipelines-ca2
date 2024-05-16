@@ -1,6 +1,6 @@
-from speak_to_data import application, presentation
-
 from flask import Flask, redirect, render_template
+from speak_to_data import application, presentation
+import time
 
 application.initial_setup()
 
@@ -17,7 +17,13 @@ def index():
             request_object = application.generate_request_object(
                 valid_query_data, application.config.EVENT_RECORDS_PATH
             )
-            response = application.call_tapas_on_hf(request_object)
+            response_from_model = application.call_tapas_on_hf(request_object)
+            response_to_user = application.Response(response_from_model)
+            while response_to_user.is_loading:
+                time.sleep(3)
+                response_from_model = application.call_tapas_on_hf(request_object)
+                response_to_user = application.Response(response_from_model)
+            response = str(response_to_user)
         else:
             # Let the user know to change their query
             response = valid_query_data.query_dates.warning
