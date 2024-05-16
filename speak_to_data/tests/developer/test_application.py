@@ -3,7 +3,7 @@ import unittest
 import datetime
 from pathlib import Path
 
-from speak_to_data.application import config, events, prepare_for_model, query_parser
+from speak_to_data.application import config, events, prepare_for_model, query_parser, response_parser
 from speak_to_data.communication import read_dataset
 import spacy
 
@@ -213,4 +213,45 @@ class TestDatasetFilter(unittest.TestCase):
             ],
         }
         actual = prepare_for_model._list_of_dicts_to_one_dict(mock_input)
+        self.assertEqual(expected, actual)
+
+
+class TestModelResponse(unittest.TestCase):
+    """Parse responses from TaPas model"""
+    responses = {
+        "loading": {
+            "error": "Model google/tapas-large-finetuned-wtq is currently loading",
+            "estimated_time": 53.877471923828125
+        },
+        "empty_table": {
+            "error": "table is empty",
+            "warnings": ["There was an inference error: table is empty"]
+        },
+        "valid": {
+                "answer": "SUM > 1sqft, 2sqft",
+                "coordinates": [[0, 2], [1, 2]],
+                "cells": [
+                    "1sqft",
+                    "2sqft"
+                ],
+                "aggregator": "SUM"
+        }
+    }
+
+    def test_givenModelError_whenCurrentlyLoading_thenResponseIsLoading(self):
+        """response object does not need to set a string value"""
+        model_response = TestModelResponse.responses["loading"]
+        actual = response_parser.Response(model_response).is_loading
+        self.assertTrue(actual)
+
+    def test_givenModelError_whenTableIsEmpty_thenResponseStringIsWarning(self):
+        model_response = TestModelResponse.responses["empty_table"]
+        expected = "No data was found based on the previous query."
+        actual = str(response_parser.Response(model_response))
+        self.assertEqual(expected, actual)
+
+    def test_givenModelAnswer_thenResponseStringIsAnswer(self):
+        model_response = TestModelResponse.responses["valid"]
+        expected = "SUM > 1sqft, 2sqft"
+        actual = str(response_parser.Response(model_response))
         self.assertEqual(expected, actual)
