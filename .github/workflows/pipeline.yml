@@ -1,6 +1,6 @@
 name: Pull Request pipeline
 
-on: workflow_dispatch
+on: pull_request
 
 permissions:
   contents: read
@@ -14,8 +14,27 @@ jobs:
       security-events: write
       packages: read
     steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: run composite CodeQL scan
       uses: ./.github/actions/codeql-action
 
   build:
     name: Build and test
     runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: build solution
+      uses: ./.github/actions/build-action
+    - name: run test suite
+      run: |
+        python -m poetry run python -m unittest
+    - name: run Flask server
+      run: |
+        python -m poetry run flask --app speak_to_data/presentation/app.py run &
+    - name: run ZAP scan
+      uses: zaproxy/action-baseline@v0.12.0
+      with:
+        target: 'http://localhost:5000'
+        allow_issue_writing: "false"
