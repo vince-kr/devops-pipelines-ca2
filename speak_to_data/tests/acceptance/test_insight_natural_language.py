@@ -3,7 +3,7 @@ import re
 from speak_to_data import application, communication, presentation
 import unittest
 
-from speak_to_data.application import query_parser
+from speak_to_data.application import query_parser, response_parser
 
 
 class Test_INLF1_DisplayFormFields(unittest.TestCase):
@@ -96,9 +96,7 @@ class Test_INLF4_RetrieveCruxFromQuery(unittest.TestCase):
 class Test_INLF5_GenerateAndSendRequestObject(unittest.TestCase):
     def setUp(self):
         self.query_data = query_parser.QueryData("How much cress did I sow last year?")
-
-    def test_givenTestQueryData_thenRequestObjectHasExpectedValue(self):
-        expected = {
+        self.valid_request_object = {
             "inputs": {
                 "query": "what is sum of quantity?",
                 "table": {
@@ -111,7 +109,51 @@ class Test_INLF5_GenerateAndSendRequestObject(unittest.TestCase):
                 "wait_for_model": "true",
             },
         }
+
+    def test_givenTestQueryData_thenRequestObjectHasExpectedValue(self):
+        expected = self.valid_request_object
         actual = application.generate_request_object(
             self.query_data, application.config.MOCK_DATA_SMALL
         )
+        self.assertEqual(expected, actual)
+
+
+class Test_INLF6_PresentModelResponseToUser(unittest.TestCase):
+    """Parse responses from TaPas model"""
+    def setUp(self):
+        self.responses = {
+            "loading": {
+                "error": "Model google/tapas-large-finetuned-wtq is currently loading",
+                "estimated_time": 53.877471923828125
+            },
+            "empty_table": {
+                "error": "table is empty",
+                "warnings": ["There was an inference error: table is empty"]
+            },
+            "valid": {
+                "answer": "SUM > 1sqft, 2sqft",
+                "coordinates": [[0, 2], [1, 2]],
+                "cells": [
+                    "1sqft",
+                    "2sqft"
+                ],
+                "aggregator": "SUM"
+            }
+        }
+
+    def test_givenModelError_whenCurrentlyLoading_thenResponseIsLoading(self):
+        model_response = self.responses["loading"]
+        actual = response_parser.Response(model_response).is_loading
+        self.assertTrue(actual)
+
+    def test_givenModelError_whenTableIsEmpty_thenResponseStringIsWarning(self):
+        model_response = self.responses["empty_table"]
+        expected = "No data was found based on the previous query."
+        actual = str(response_parser.Response(model_response))
+        self.assertEqual(expected, actual)
+
+    def test_givenModelAnswer_thenResponseStringIsAnswer(self):
+        model_response = self.responses["valid"]
+        expected = "SUM > 1sqft, 2sqft"
+        actual = str(response_parser.Response(model_response))
         self.assertEqual(expected, actual)
