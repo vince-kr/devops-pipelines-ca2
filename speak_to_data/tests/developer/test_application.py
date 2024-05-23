@@ -54,6 +54,16 @@ class TestQueryParserCropsAndActions(unittest.TestCase):
         actual = query_parser.QueryData(no_crops).crops
         self.assertTrue(len(actual) == 0)
 
+    def test_givenCropIncludingSpace_thenReturnCrop(self):
+        spaced_crop = "How many Brussels sprouts did I harvest last year?"
+        query_data = query_parser.QueryData(spaced_crop)
+        expected_crop = {"sprout"}
+        actual_crop = query_data.crops
+        expected_crux = "what is the sum of all quantities?"
+        actual_crux = query_data.crux
+        self.assertEqual(expected_crop, actual_crop)
+        self.assertEqual(expected_crux, actual_crux)
+
     def test_givenQueryWithAction_thenDataContainsOneAction(self):
         one_action = "How much cress did I sow last year?"
         expected = {"sow"}
@@ -166,7 +176,7 @@ class TestQueryParserDateRange(unittest.TestCase):
 class TestCrux(unittest.TestCase):
     def test_givenHowMuchCrop_thenCruxIsSumOfQuantityFields(self):
         query = "How much cress did I sow last year?"
-        expected = "what is sum of quantity?"
+        expected = "what is the sum of all quantities?"
         actual = query_parser.QueryData(query).crux
         self.assertEqual(expected, actual)
 

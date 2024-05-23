@@ -44,7 +44,8 @@ def generate_request_object(query_data: QueryData, events_path: Path) -> dict:
             "table": altered_dataset,
         },
         "options": {
-            "wait_for_model": "true",
+            "wait_for_model": "True",
+            "use_cache": "False",
         },
     }
 

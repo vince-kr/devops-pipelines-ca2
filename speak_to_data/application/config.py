@@ -5,12 +5,10 @@ SECRETS_PATH = Path(__file__).parent.parent / "secret.json"
 SECRETS = communication.read_json(SECRETS_PATH)
 APP_DATA_PATH = Path(__file__).parent.parent / "app_data.json"
 EVENT_RECORDS_PATH = Path(__file__).parent.parent.parent / "data" / "events.csv"
-MOCK_DATA_ONELINE = (
-    Path(__file__).parent.parent / "tests" / "test_data" / "oneline_mock_data.csv"
-)
-MOCK_DATA_SMALL = (
-    Path(__file__).parent.parent / "tests" / "test_data" / "small_mock_data.csv"
-)
+MOCK_DATA_DIR = Path(__file__).parent.parent / "tests" / "test_data"
+MOCK_DATA_ONELINE = MOCK_DATA_DIR / "oneline_mock_data.csv"
+MOCK_DATA_SMALL = MOCK_DATA_DIR / "small_mock_data.csv"
+MOCK_DATA_LARGE = MOCK_DATA_DIR / "large_mock_data.csv"
 
 FIELD_NAMES = [
     "date",

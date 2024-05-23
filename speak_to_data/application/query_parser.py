@@ -1,5 +1,6 @@
 import dateparser
 import datetime
+import re
 from spacy.tokens.doc import Doc
 from speak_to_data import application
 
@@ -7,7 +8,7 @@ from speak_to_data import application
 class QueryData:
     def __init__(self, raw_query: str) -> None:
         self.columns = set()
-        self.docd_query: Doc = application.nlp(raw_query)
+        self.docd_query: Doc = self._cleanup(raw_query)
         self.crops: set[str] = self._retrieve_crops()
         self.actions: set[str] = self._retrieve_actions()
         self.locations: set[str] = self._retrieve_locations()
@@ -16,7 +17,7 @@ class QueryData:
 
     def _retrieve_from_query(self, retrieve_from: set[str]) -> set[str]:
         """Generate the set of lemmas for a query and return matching action/crop"""
-        query_lemmas = set(token.lemma_ for token in self.docd_query)
+        query_lemmas = set(token.lemma_.lower() for token in self.docd_query)
         intersection = retrieve_from & query_lemmas
         if "plant" in intersection:
             intersection.remove("plant")
@@ -28,7 +29,6 @@ class QueryData:
         if crops := self._retrieve_from_query(application.config.CROPS):
             self.columns.add("crop")
         return crops
-
 
     def _retrieve_actions(self) -> set[str]:
         """Retrieve all actions from a given query"""
@@ -45,16 +45,25 @@ class QueryData:
         quantity_indicators: tuple[str, ...] = ("how much", "how many")
         crux: str = ""
         if (
-                self.docd_query[:2].text.lower() in quantity_indicators
-                and self.docd_query[2].lemma_ in application.config.CROPS
+            self.docd_query[:2].text.lower() in quantity_indicators
+            and self.docd_query[2].lemma_ in application.config.CROPS
         ):
             self.columns.add("quantity")
-            crux = "what is sum of quantity?"
-        elif ("maintenance" in set(token.lemma_ for token in self.docd_query)
-              or "maintain" in set(token.lemma_ for token in self.docd_query)):
+            crux = "what is the sum of all quantities?"
+        elif "maintenance" in set(
+            token.lemma_ for token in self.docd_query
+        ) or "maintain" in set(token.lemma_ for token in self.docd_query):
             self.columns.add("duration")
             crux = "what is sum of duration?"
         return crux
+
+    @staticmethod
+    def _cleanup(query: str) -> Doc:
+        patterns_to_kill: tuple[str] = (r"brussels? ", )
+        for pattern in patterns_to_kill:
+            query = re.sub(pattern, "", query, flags=re.IGNORECASE)
+        return application.nlp(query)
+
 
 class QueryDatesWarnings:
     """Get mentions of dates out of a Doc object for use in filters"""
@@ -147,7 +156,5 @@ class QueryDatesWarnings:
                 "Please specify a date or date range."
             )
         elif not self.date_objects:
-            message = (
-                f'Date reference "{self.date_entities[0]}" cannot be parsed as a date, or represents a future date.'
-            )
+            message = f'Date reference "{self.date_entities[0]}" cannot be parsed as a date, or represents a future date.'
         return message

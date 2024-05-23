@@ -18,9 +18,15 @@ class Response:
     def table_empty(self) -> bool:
         return self._has_error and "table is empty" in self.model_response["error"]
 
-    def __str__(self):
+    @property
+    def query_empty(self) -> bool:
+        return self._has_error and "query is empty" in self.model_response["error"]
+
+    def __str__(self) -> str:
         if self._has_error:
             if self.table_empty:
                 return "No data was found based on the previous query."
+            elif self.query_empty:
+                return "Something went wrong parsing your query. Please attempt to reword it."
         else:
             return self.model_response["answer"]

@@ -81,7 +81,7 @@ class Test_INLF4_RetrieveCruxFromQuery(unittest.TestCase):
     def test_givenHowMuchCrop_thenQueryDataHasCorrectCrux(self):
         query = "How much cress did I sow last year?"
         parameters = application.query_parser.QueryData(query)
-        expected = "what is sum of quantity?"
+        expected = "what is the sum of all quantities?"
         actual = parameters.crux
         self.assertEqual(expected, actual)
 
@@ -98,7 +98,7 @@ class Test_INLF5_GenerateAndSendRequestObject(unittest.TestCase):
         self.query_data = query_parser.QueryData("How much cress did I sow last year?")
         self.valid_request_object = {
             "inputs": {
-                "query": "what is sum of quantity?",
+                "query": "what is the sum of all quantities?",
                 "table": {
                     "action": ["sow", "sow"],
                     "crop": ["cress", "cress"],
@@ -106,7 +106,8 @@ class Test_INLF5_GenerateAndSendRequestObject(unittest.TestCase):
                 },
             },
             "options": {
-                "wait_for_model": "true",
+                "wait_for_model": "True",
+                "use_cache": "False",
             },
         }
 
@@ -130,6 +131,10 @@ class Test_INLF6_PresentModelResponseToUser(unittest.TestCase):
                 "error": "table is empty",
                 "warnings": ["There was an inference error: table is empty"]
             },
+            "empty_query": {
+                "error": "query is empty",
+                "warnings": ["There was an inference error: query is empty"]
+            },
             "valid": {
                 "answer": "SUM > 1sqft, 2sqft",
                 "coordinates": [[0, 2], [1, 2]],
@@ -151,6 +156,13 @@ class Test_INLF6_PresentModelResponseToUser(unittest.TestCase):
         expected = "No data was found based on the previous query."
         actual = str(response_parser.Response(model_response))
         self.assertEqual(expected, actual)
+
+    def test_givenModelError_whenQueryIsEmpty_thenResponseStringIsWarning(self):
+        model_response = self.responses["empty_query"]
+        expected = "Something went wrong parsing your query. Please attempt to reword it."
+        actual = str(response_parser.Response(model_response))
+        self.assertEqual(expected, actual)
+
 
     def test_givenModelAnswer_thenResponseStringIsAnswer(self):
         model_response = self.responses["valid"]
