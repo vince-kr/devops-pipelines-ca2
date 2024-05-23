@@ -1,7 +1,6 @@
-
-
 def generate_model_ready_dataset(
-    dataset: list[dict], query_data) -> dict[str, list[str]]:
+    dataset: list[dict], query_data
+) -> dict[str, list[str]]:
     if not query_data or not query_data.columns:
         return dict()
 

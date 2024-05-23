@@ -3,7 +3,13 @@ import unittest
 import datetime
 from pathlib import Path
 
-from speak_to_data.application import config, events, prepare_for_model, query_parser, response_parser
+from speak_to_data.application import (
+    config,
+    events,
+    prepare_for_model,
+    query_parser,
+    response_parser,
+)
 from speak_to_data.communication import read_dataset
 import spacy
 
@@ -184,7 +190,7 @@ class TestCrux(unittest.TestCase):
         queries = [
             "How much time did I spend on maintenance in January?",
             "How much time did I spend maintaining carrot beds last year?",
-            "How long did I take to maintain cress in March?"
+            "How long did I take to maintain cress in March?",
         ]
         for query in queries:
             with self.subTest(msg=f"Testing maintenance query:\n{query}"):
@@ -195,9 +201,7 @@ class TestCrux(unittest.TestCase):
 
 class TestDatasetFilter(unittest.TestCase):
     def setUp(self):
-        self.query_data = query_parser.QueryData(
-            "How much cress did I sow last year?"
-        )
+        self.query_data = query_parser.QueryData("How much cress did I sow last year?")
         self.dataset = read_dataset(config.MOCK_DATA_SMALL)
 
     def test_givenQueryDataWithCrop_thenSelectColumnsContainsCrop(self):
@@ -252,24 +256,22 @@ class TestDatasetFilter(unittest.TestCase):
 
 class TestModelResponse(unittest.TestCase):
     """Parse responses from TaPas model"""
+
     responses = {
         "loading": {
             "error": "Model google/tapas-large-finetuned-wtq is currently loading",
-            "estimated_time": 53.877471923828125
+            "estimated_time": 53.877471923828125,
         },
         "empty_table": {
             "error": "table is empty",
-            "warnings": ["There was an inference error: table is empty"]
+            "warnings": ["There was an inference error: table is empty"],
         },
         "valid": {
-                "answer": "SUM > 1sqft, 2sqft",
-                "coordinates": [[0, 2], [1, 2]],
-                "cells": [
-                    "1sqft",
-                    "2sqft"
-                ],
-                "aggregator": "SUM"
-        }
+            "answer": "SUM > 1sqft, 2sqft",
+            "coordinates": [[0, 2], [1, 2]],
+            "cells": ["1sqft", "2sqft"],
+            "aggregator": "SUM",
+        },
     }
 
     def test_givenModelError_whenCurrentlyLoading_thenResponseIsLoading(self):

@@ -6,9 +6,7 @@ import unittest
 
 class TestCsvReaderToTableGenerator(unittest.TestCase):
     def setUp(self):
-        self.sow_cress = query_parser.QueryData(
-            "How much cress did I sow last year?"
-        )
+        self.sow_cress = query_parser.QueryData("How much cress did I sow last year?")
         self.harvest_sprouts = query_parser.QueryData(
             "How many Brussels sprouts did I harvest last year?"
         )
@@ -28,9 +26,24 @@ class TestCsvReaderToTableGenerator(unittest.TestCase):
     def test_givenMockDataFromCsv_thenGetAllRelevantLines(self):
         data_from_csv = read_dataset(config.MOCK_DATA_LARGE)
         expected = {
-            "action": ["harvest", "harvest", "harvest", "harvest",],
-            "crop": ["sprout", "sprout", "sprout", "sprout",],
-            "quantity": ["600gr", "800gr", "800gr", "800gr",]
+            "action": [
+                "harvest",
+                "harvest",
+                "harvest",
+                "harvest",
+            ],
+            "crop": [
+                "sprout",
+                "sprout",
+                "sprout",
+                "sprout",
+            ],
+            "quantity": [
+                "600gr",
+                "800gr",
+                "800gr",
+                "800gr",
+            ],
         }
         actual = prepare_for_model.generate_model_ready_dataset(
             data_from_csv, self.harvest_sprouts

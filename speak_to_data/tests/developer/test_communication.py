@@ -6,7 +6,15 @@ import unittest
 
 
 # Create test files
-fieldnames = ["date", "action", "crop", "quantity", "duration", "location", "location_type"]
+fieldnames = [
+    "date",
+    "action",
+    "crop",
+    "quantity",
+    "duration",
+    "location",
+    "location_type",
+]
 mock_data = [
     {
         "date": "2023-04-28",
@@ -43,7 +51,7 @@ mock_data = [
         "duration": "40",
         "location": "east-hoop-house",
         "location_type": "hoop-house-raised-bed",
-    }
+    },
 ]
 with open(application.config.MOCK_DATA_ONELINE, "w", newline="") as ol:
     w = csv.DictWriter(ol, fieldnames=fieldnames, dialect="unix")
