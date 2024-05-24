@@ -4,9 +4,6 @@ description: "Simplify running CodeQL on Python"
 runs:
   using: "composite"
   steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
-
   # Initializes the CodeQL tools for scanning.
   - name: Initialize CodeQL
     uses: github/codeql-action/init@v3
