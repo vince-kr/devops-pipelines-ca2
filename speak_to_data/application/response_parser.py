@@ -28,5 +28,7 @@ class Response:
                 return "No data was found based on the previous query."
             elif self.query_empty:
                 return "Something went wrong parsing your query. Please attempt to reword it."
+            else:
+                return self.model_response["answer"]
         else:
             return self.model_response["answer"]

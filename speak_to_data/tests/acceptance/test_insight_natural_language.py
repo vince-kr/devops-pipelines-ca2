@@ -121,29 +121,27 @@ class Test_INLF5_GenerateAndSendRequestObject(unittest.TestCase):
 
 class Test_INLF6_PresentModelResponseToUser(unittest.TestCase):
     """Parse responses from TaPas model"""
+
     def setUp(self):
         self.responses = {
             "loading": {
                 "error": "Model google/tapas-large-finetuned-wtq is currently loading",
-                "estimated_time": 53.877471923828125
+                "estimated_time": 53.877471923828125,
             },
             "empty_table": {
                 "error": "table is empty",
-                "warnings": ["There was an inference error: table is empty"]
+                "warnings": ["There was an inference error: table is empty"],
             },
             "empty_query": {
                 "error": "query is empty",
-                "warnings": ["There was an inference error: query is empty"]
+                "warnings": ["There was an inference error: query is empty"],
             },
             "valid": {
                 "answer": "SUM > 1sqft, 2sqft",
                 "coordinates": [[0, 2], [1, 2]],
-                "cells": [
-                    "1sqft",
-                    "2sqft"
-                ],
-                "aggregator": "SUM"
-            }
+                "cells": ["1sqft", "2sqft"],
+                "aggregator": "SUM",
+            },
         }
 
     def test_givenModelError_whenCurrentlyLoading_thenResponseIsLoading(self):
@@ -159,10 +157,11 @@ class Test_INLF6_PresentModelResponseToUser(unittest.TestCase):
 
     def test_givenModelError_whenQueryIsEmpty_thenResponseStringIsWarning(self):
         model_response = self.responses["empty_query"]
-        expected = "Something went wrong parsing your query. Please attempt to reword it."
+        expected = (
+            "Something went wrong parsing your query. Please attempt to reword it."
+        )
         actual = str(response_parser.Response(model_response))
         self.assertEqual(expected, actual)
-
 
     def test_givenModelAnswer_thenResponseStringIsAnswer(self):
         model_response = self.responses["valid"]

@@ -7,7 +7,7 @@ from speak_to_data import application
 
 class QueryData:
     def __init__(self, raw_query: str) -> None:
-        self.columns = set()
+        self.columns: set[str] = set()
         self.docd_query: Doc = self._cleanup(raw_query)
         self.crops: set[str] = self._retrieve_crops()
         self.actions: set[str] = self._retrieve_actions()
@@ -59,7 +59,7 @@ class QueryData:
 
     @staticmethod
     def _cleanup(query: str) -> Doc:
-        patterns_to_kill: tuple[str] = (r"brussels? ", )
+        patterns_to_kill: tuple[str] = (r"brussels? ",)
         for pattern in patterns_to_kill:
             query = re.sub(pattern, "", query, flags=re.IGNORECASE)
         return application.nlp(query)

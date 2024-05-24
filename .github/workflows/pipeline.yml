@@ -6,6 +6,15 @@ permissions:
   contents: read
 
 jobs:
+  prebuild:
+    name: Pre build formatting
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: format with black
+      uses: psf/black@stable
+      
   codeql:
     name: CodeQL scan
     runs-on: ubuntu-latest
@@ -27,6 +36,9 @@ jobs:
       uses: actions/checkout@v4
     - name: build solution
       uses: ./.github/actions/build-action
+    - name: type checks
+      run: |
+        python -m poetry run python -m mypy speak_to_data
     - name: run test suite
       run: |
         python -m poetry run python -m unittest
